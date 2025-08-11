@@ -1,7 +1,6 @@
 package com.clinic.main;
 
 import com.clinic.main.dtos.DoctorDto;
-import com.clinic.main.service.DoctorAppointmentFacade;
 import com.clinic.main.service.DoctorService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,9 +14,6 @@ public class DoctorTests {
 
     @Autowired
     private DoctorService doctorService;
-
-    @Autowired
-    private DoctorAppointmentFacade doctorAppointmentFacade;
 
     @Test
     public void testRepositoryGetMethods() {
@@ -56,16 +52,16 @@ public class DoctorTests {
 
         // ADD Doctor
         System.out.println("New Doctor Added: ");
-        DoctorDto addedDoctor = doctorAppointmentFacade.addDoctor(newDoctorDto);
+        DoctorDto addedDoctor = doctorService.addDoctor(newDoctorDto);
         System.out.println(addedDoctor);
 
         // Update Doctor
         addedDoctor.setSpecialization("Ventilation");
-        DoctorDto updatedDoctor = doctorAppointmentFacade.updateDoctor(addedDoctor, addedDoctor.getId());
+        DoctorDto updatedDoctor = doctorService.updateDoctor(addedDoctor.getId(), addedDoctor);
         System.out.println(updatedDoctor);
 
         // Delete Doctor
-        System.out.println(doctorAppointmentFacade.deleteDoctor(updatedDoctor));
+        System.out.println(doctorService.deleteById(updatedDoctor.getId()));
     }
 
     private void displayDoctors(List<DoctorDto> doctorDtos) {

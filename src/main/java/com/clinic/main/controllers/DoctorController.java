@@ -1,7 +1,6 @@
 package com.clinic.main.controllers;
 
 import com.clinic.main.dtos.DoctorDto;
-import com.clinic.main.service.DoctorAppointmentFacade;
 import com.clinic.main.service.DoctorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,66 +10,51 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@RequestMapping("/api/doctors")
 public class DoctorController {
 
-    @Autowired
-    private DoctorService doctorService;
+    private final DoctorService doctorService;
 
-    @Autowired
-    private DoctorAppointmentFacade doctorAppointmentFacade;
+    public DoctorController(DoctorService doctorService) {
+        this.doctorService = doctorService;
+    }
 
-    @PostMapping("/doctor")
+    // Create doctor
+    @PostMapping
     public ResponseEntity<DoctorDto> createDoctor(@RequestBody DoctorDto doctorDto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(doctorAppointmentFacade.addDoctor(doctorDto));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(doctorService.addDoctor(doctorDto));
     }
 
-    @GetMapping("/doctors")
-    public ResponseEntity<List<DoctorDto>> allAppointments() {
-        return ResponseEntity.ok(doctorService.getAllDoctorDtos());
+    // Get all doctors
+    @GetMapping
+    public ResponseEntity<List<DoctorDto>> getAllDoctors(
+            @RequestParam(required = false) String specialization,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy
+    ) {
+        if (specialization != null) {
+            return ResponseEntity.ok(doctorService.getDoctorDtosBySpecialization(specialization));
+        }
+        return ResponseEntity.ok(doctorService.getAPageOfDoctorDto(page, size, sortBy));
     }
 
-    @GetMapping("/doctors/{id}")
-    public ResponseEntity<DoctorDto> doctorById(@PathVariable("id") Long doctorId) {
-        return ResponseEntity.ok(doctorService.getDoctorDtoById(doctorId));
+    // Get doctor by ID
+    @GetMapping("/{id}")
+    public ResponseEntity<DoctorDto> getDoctorById(@PathVariable Long id) {
+        return ResponseEntity.ok(doctorService.getDoctorDtoById(id));
     }
 
-    @GetMapping("/doctors/page/{pageNumber}")
-    public List<DoctorDto> singlePageOfDoctors(@PathVariable("pageNumber") Integer pageNumber) {
-        return doctorService.getAPageOfDoctorDto(pageNumber, 2, "id");
+    // Update doctor by ID
+    @PutMapping("/{id}")
+    public ResponseEntity<DoctorDto> updateDoctor(@PathVariable Long id, @RequestBody DoctorDto doctorDto) {
+        return ResponseEntity.ok(doctorService.updateDoctor(id, doctorDto));
     }
 
-    @GetMapping("/doctors/search/{specialization}")
-    public List<DoctorDto> doctorsInSpecialize(@PathVariable("specialization") String specialization) {
-        return doctorService.getDoctorDtosBySpecialization(specialization);
-    }
-
-    @GetMapping("/doctors/sort/name")
-    public List<DoctorDto> sortsDoctorByName() {
-        return doctorService.getDoctorDtosSortedBy("name");
-    }
-
-    @GetMapping("/doctors/sort/exp")
-    public List<DoctorDto> sortsDoctorByExperience() {
-        return doctorService.getDoctorDtosSortedBy("experience");
-    }
-
-    @PutMapping("/doctor/{id}")
-    public DoctorDto updateDoctor(@RequestBody DoctorDto doctorDto, @PathVariable Long doctorId) {
-        return doctorAppointmentFacade.updateDoctor(doctorDto, doctorId);
-    }
-
-    @PutMapping("/doctor")
-    public DoctorDto updateDoctor(@RequestBody DoctorDto doctorDto) {
-        return doctorAppointmentFacade.updateDoctor(doctorDto, doctorDto.getId());
-    }
-
-    @DeleteMapping("/doctor/{id}")
-    public String deleteDoctorById(@PathVariable("id") Long doctorId) {
-        return doctorService.deleteById(doctorId);
-    }
-
-    @DeleteMapping("/doctor")
-    public String deleteDoctor(@RequestBody DoctorDto doctorDto) {
-        return doctorAppointmentFacade.deleteDoctor(doctorDto);
+    // Delete doctor by ID
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteDoctorById(@PathVariable Long id) {
+        return ResponseEntity.ok(doctorService.deleteById(id));
     }
 }

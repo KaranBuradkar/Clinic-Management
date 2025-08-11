@@ -4,27 +4,17 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
-public class AppointmentDto {
+public class AppointmentRequestDto {
 
     private Long id;
     private String reason;
     private LocalDate date;
     private LocalTime time;
     private LocalDateTime createdAt;
-//    private DoctorDto doctorDto;
-//    private PatientDto patientDto;
+    private Long doctorId;
+    private Long patientId;
 
-    public AppointmentDto() {
-    }
-
-    public AppointmentDto(Long id, String reason, LocalDate date, LocalTime time, LocalDateTime createdAt) {
-        this.id = id;
-        this.reason = reason;
-        this.date = date;
-        this.time = time;
-        this.createdAt = createdAt;
-//        this.doctorDto = doctorDto;
-//        this.patientDto = patientDto;
+    public AppointmentRequestDto() {
     }
 
     public Long getId() {
@@ -67,30 +57,32 @@ public class AppointmentDto {
         this.createdAt = createdAt;
     }
 
-//    public DoctorDto getDoctorDto() {
-//        return doctorDto;
-//    }
-//
-//    public void setDoctorDto(DoctorDto doctorDto) {
-//        this.doctorDto = doctorDto;
-//    }
-//
-//    public PatientDto getPatientDto() {
-//        return patientDto;
-//    }
-//
-//    public void setPatientDto(PatientDto patientDto) {
-//        this.patientDto = patientDto;
-//    }
+    public Long getDoctorId() {
+        return doctorId;
+    }
+
+    public void setDoctorId(Long doctorId) {
+        this.doctorId = doctorId;
+    }
+
+    public Long getPatientId() {
+        return patientId;
+    }
+
+    public void setPatientId(Long patientId) {
+        this.patientId = patientId;
+    }
 
     @Override
     public String toString() {
-        return "AppointmentDto{" +
+        return "AppointmentRequestDto{" +
                 "id=" + id +
                 ", reason='" + reason + '\'' +
                 ", date=" + date +
                 ", time=" + time +
                 ", createdAt=" + createdAt +
+                ", doctorId=" + doctorId +
+                ", patientId=" + patientId +
                 '}';
     }
 }

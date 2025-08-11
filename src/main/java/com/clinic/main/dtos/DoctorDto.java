@@ -1,6 +1,7 @@
 package com.clinic.main.dtos;
 
 import com.clinic.main.entity.Appointment;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -15,14 +16,25 @@ public class DoctorDto {
     private String name;
     private String specialization;
     private Integer experience;
+    private Long appointmentHandled;
+    private List<AppointmentDto> appointmentDtos = new ArrayList<>();
 
     public DoctorDto() {
     }
 
-    public DoctorDto(Long id, String name, String specialization, Integer experience) {
+    public DoctorDto(Long id, String name, String specialization, Integer experience, List<AppointmentDto> appointmentDtos) {
         this.id = id;
         this.name = name;
         this.specialization = specialization;
+        this.experience = experience;
+        this.appointmentDtos = appointmentDtos;
+    }
+
+    public DoctorDto(Long id, String name, String specialization, Integer experience, Long appointmentHandled) {
+        this.id = id;
+        this.name = name;
+        this.specialization = specialization;
+        this.appointmentHandled = appointmentHandled;
         this.experience = experience;
     }
 
@@ -56,6 +68,22 @@ public class DoctorDto {
 
     public void setExperience(Integer experience) {
         this.experience = experience;
+    }
+
+    public List<AppointmentDto> getAppointmentDtos() {
+        return appointmentDtos;
+    }
+
+    public void setAppointmentDtos(List<AppointmentDto> appointmentDtos) {
+        this.appointmentDtos = appointmentDtos;
+    }
+
+    public Long getAppointmentHandled() {
+        return appointmentHandled;
+    }
+
+    public void setAppointmentHandled(Long appointmentHandled) {
+        this.appointmentHandled = appointmentHandled;
     }
 
     @Override

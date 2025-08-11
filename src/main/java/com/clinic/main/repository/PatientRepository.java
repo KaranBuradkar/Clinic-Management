@@ -17,15 +17,17 @@ public interface PatientRepository extends JpaRepository<Patient, Long> {
     // Add patient - default -> .save(patient);
     // View all patients - default -> .findAll();
     // View patient by ID - default -> .findById(id);
+    // Update patient - .save(patient);
+    // Delete patient - default -> .delete(patient);
 
-//    @EntityGraph(attributePaths = {"appointments"})
+    // @EntityGraph(attributePaths = {"appointments"})
     @Query(value = "SELECT * FROM Patients WHERE id = ?1", nativeQuery = true)
     Optional<Patient> findPatientById(Long aLong);
 
-    @Query(value = "SELECT new com.clinic.main.dtos.PatientDto(id, name, birthDate, gender, phoneNo, email, age) FROM Patient WHERE id = ?1")
+    @Query(value = "SELECT new com.clinic.main.dtos.PatientDto(id, name, birthDate, gender, phoneNo, email, age) " +
+            "FROM Patient WHERE id = ?1")
     Optional<PatientDto> findPatientDtoById(Long aLong);
-    // Update patient - .save(patient);
-    // Delete patient - default -> .delete(patient);
+
     // Filter patients by age range
     @Query(value = "SELECT * FROM Patients WHERE age > ?1 and age < ?2", nativeQuery = true)
     Optional<List<Patient>> findPatientBetweenAge(Integer lowerAge, Integer higherAge);
@@ -33,7 +35,7 @@ public interface PatientRepository extends JpaRepository<Patient, Long> {
     // Pagination
     Page<Patient> findAll(Pageable pageable);
 
-    @Query("SELECT p FROM Patient p LEFT JOIN FETCH p.appointments a LEFT JOIN FETCH a.doctor d")
+    @Query("SELECT DISTINCT p FROM Patient p LEFT JOIN FETCH p.appointments a LEFT JOIN FETCH a.doctor d")
     List<Patient> getAllPatient();
 
 }

@@ -1,31 +1,55 @@
 package com.clinic.main.dtos;
 
+import org.springframework.http.HttpStatus;
+
+import java.time.LocalDateTime;
+
 public class ApiResponse {
 
-    private Boolean status;
-    private String message;
+    private HttpStatus status;
+    private LocalDateTime timestamp;
+    private String error;
+    private String path;
 
     public ApiResponse() {
     }
 
-    public ApiResponse(Boolean status, String message) {
+    public ApiResponse(HttpStatus status, LocalDateTime timestamp, String error, String path) {
         this.status = status;
-        this.message = message;
+        this.timestamp = timestamp;
+        this.error = error;
+        this.path = path;
     }
 
-    public Boolean getStatus() {
+    public HttpStatus getStatus() {
         return status;
     }
 
-    public void setStatus(Boolean status) {
+    public void setStatus(HttpStatus status) {
         this.status = status;
     }
 
-    public String getMessage() {
-        return message;
+    public LocalDateTime getTimestamp() {
+        return timestamp;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public void setTimestamp(LocalDateTime timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public String getError() {
+        return error;
+    }
+
+    public void setError(String error) {
+        this.error = error;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
     }
 }

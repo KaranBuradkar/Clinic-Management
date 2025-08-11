@@ -1,7 +1,6 @@
 package com.clinic.main.controllers;
 
 import com.clinic.main.dtos.PatientDto;
-import com.clinic.main.service.PatientAppointmentFacade;
 import com.clinic.main.service.PatientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -12,65 +11,72 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
+@RequestMapping("/api/patients") // Optional prefix for versioning or grouping
 public class PatientController {
 
-    @Autowired
-    private PatientService patientService;
-    @Autowired
-    private PatientAppointmentFacade patientAppointmentFacade;
+    private final PatientService patientService;
 
-    // Add patient
-    @PostMapping("/patient")
-    public ResponseEntity<PatientDto> createPatient(@RequestBody PatientDto patientdto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(patientAppointmentFacade.addPatient(patientdto));
+    public PatientController(PatientService patientService) {
+        this.patientService = patientService;
     }
 
-    // View all patients
-    @GetMapping("/patients")
-    public ResponseEntity<List<PatientDto>> allPatient() {
-//        return ResponseEntity.status(HttpStatus.OK).body(patientService.getAllPatient());
+    // Create a new patient
+    @PostMapping // POST /patients
+    public ResponseEntity<PatientDto> createPatient(@RequestBody PatientDto patientDto) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(patientService.addPatient(patientDto));
+    }
+
+    // Get all patients
+    @GetMapping
+    public ResponseEntity<List<PatientDto>> patients() {
         return ResponseEntity.ok(patientService.getAllPatientDto());
     }
 
-    // View patient by ID
-    @GetMapping("/patients/{id}")
-    public ResponseEntity<PatientDto> patientById(@PathVariable("id") Long patientId) {
-        return new ResponseEntity<>(patientService.getPatientDtoById(patientId), HttpStatus.OK);
+    // Get patient by ID
+    @GetMapping("/{id}")
+    public ResponseEntity<PatientDto> getPatientById(@PathVariable("id") Long id) {
+        return ResponseEntity.ok(patientService.getPatientDtoById(id));
     }
 
-    // Update patient
-    @PutMapping("/patient")
-    public PatientDto updatePatient(@RequestBody PatientDto patientDto) {
-        return patientAppointmentFacade.updatePatient(patientDto);
+    // Update entire patient record
+    @PutMapping("/{id}")
+    public ResponseEntity<PatientDto> updatePatient(@PathVariable Long id, @RequestBody PatientDto patientDto) {
+        patientDto.setId(id); // Ensure ID consistency
+        return ResponseEntity.ok(patientService.updatePatient(id, patientDto));
     }
 
-    // Delete patient
-    @DeleteMapping("/patient")
-    public String deletePatient(@RequestBody PatientDto patientDto) {
-        return patientAppointmentFacade.deletePatient(patientDto);
-    }
-
-    // Delete patient By id
-    @DeleteMapping("/patient/{id}")
-    public String deletePatientById(@PathVariable Long patientId) {
-        return patientService.deletePatientById(patientId);
+    // Delete patient by ID
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deletePatientById(@PathVariable Long id) {
+        return ResponseEntity.ok(patientService.deletePatientById(id));
     }
 
     // Filter patients by age range
-    @GetMapping("/patients/filter/age/{lower}/{upper}")
-    public List<PatientDto> filterPatientsByAgeRange(@PathVariable("lower") Integer lowerAge, @PathVariable("higher") Integer upperAge) {
-        return patientService.getPatientDtoBetweenAge(lowerAge, upperAge);
+    @GetMapping("/filter")
+    public ResponseEntity<List<PatientDto>> filterByAgeRange(
+            @RequestParam Integer ageMin,
+            @RequestParam Integer ageMax
+    ) {
+        return ResponseEntity.ok(patientService.getPatientDtoBetweenAge(ageMin, ageMax));
     }
 
-    @GetMapping("/patients/page/{number}/{size}/{sort_by}")
-    public List<PatientDto> patientPage(@PathVariable("number") Integer pageNumber,
-                                     @PathVariable("size") Integer pageSize,
-                                     @PathVariable("sort_by") String sortBy) {
-        return patientService.getPatientDtoPage(pageNumber, pageSize, sortBy);
+    // Get patients with pagination and sorting
+    @GetMapping("/page")
+    public ResponseEntity<List<PatientDto>> getPaginatedPatients(
+            @RequestParam int page,
+            @RequestParam int size,
+            @RequestParam(defaultValue = "id") String sortBy
+    ) {
+        return ResponseEntity.ok(patientService.getPatientDtoPage(page, size, sortBy));
     }
 
-    @PatchMapping("/patient/{id}")
-    public ResponseEntity<PatientDto> updateField(@PathVariable("id") Long id, @RequestBody Map<String, Object> updates) {
-        return ResponseEntity.status(HttpStatus.OK).body(patientService.updateField(id, updates));
+    // Partially update patient (e.g., name or other fields)
+    @PatchMapping("/{id}")
+    public ResponseEntity<PatientDto> updatePatientFields(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> updates
+    ) {
+        return ResponseEntity.ok(patientService.updateField(id, updates));
     }
 }

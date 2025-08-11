@@ -1,10 +1,13 @@
 package com.clinic.main;
 
+import com.clinic.main.dtos.AppointmentBasicDto;
 import com.clinic.main.dtos.AppointmentDto;
 import com.clinic.main.dtos.AppointmentPerDoctorDTO;
 import com.clinic.main.entity.Appointment;
 import com.clinic.main.repository.AppointmentRepository;
 import com.clinic.main.service.AppointmentService;
+import com.clinic.main.service.DoctorService;
+import com.clinic.main.service.PatientService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,16 +23,16 @@ public class AppointmentTests {
     @Autowired
     private AppointmentService appointmentService;
 
-//    @Autowired
-//    private AppointmentRepository appointmentRepository;
+    @Autowired
+    private DoctorService doctorService;
+    @Autowired
+    private PatientService patientService;
 
     @Test
     public void testAppointmentService() {
 
         AppointmentDto newAppointmentDto = new AppointmentDto();
         newAppointmentDto.setReason("Head Pain.");
-        newAppointmentDto.setDoctorId(3L);
-        newAppointmentDto.setPatientId(5L);
         newAppointmentDto.setTime(LocalTime.of(3, 35));
         newAppointmentDto.setDate(LocalDate.of(2025, 8, 18));
         newAppointmentDto.setCreatedAt(LocalDateTime.now());
@@ -51,15 +54,15 @@ public class AppointmentTests {
     public void testRepositoryGetMethods() {
 
         // View all Appointments
-        List<AppointmentDto> appointmentDtos = appointmentService.getAllAppointmentDtos();
+        List<AppointmentDto> appointmentDtos = appointmentService.getAllAppointmentDtos("id");
         System.out.println("View all Appointments: "+appointmentDtos);
 
         // View Appointment By ID
-        AppointmentDto appointmentDto = appointmentService.getAppointmentDtoById(3L);
+        AppointmentDto appointmentDto = appointmentService.getAppointmentDtoById(13L);
         System.out.println("View Appointment By ID: "+appointmentDto);
 
         // View Appointments by doctorId
-        appointmentDtos = appointmentService.getAppointmentDtosOfDoctorId(5L);
+        appointmentDtos = appointmentService.getAppointmentDtosOfDoctorId(3L);
         System.out.println("View Appointments by doctorId: "+appointmentDtos);
 
         // View Appointments by patientId
@@ -89,11 +92,11 @@ public class AppointmentTests {
     @Test
     public void testRepositoryDoctorDetailModification() {
         AppointmentDto newAppointmentDto = new AppointmentDto();
-        newAppointmentDto.setReason("Back Pain.");
-        newAppointmentDto.setDoctorId(4L);
-        newAppointmentDto.setPatientId(5L);
-        newAppointmentDto.setTime(LocalTime.of(6, 35));
-        newAppointmentDto.setDate(LocalDate.of(2025, 8, 18));
+        newAppointmentDto.setReason("Chest Pain.");
+//        newAppointmentDto.setDoctorDto(doctorService.getDoctorDtoById(6L));
+//        newAppointmentDto.setPatientDto(patientService.getPatientDtoById(3L));
+        newAppointmentDto.setTime(LocalTime.of(8, 30));
+        newAppointmentDto.setDate(LocalDate.of(2025, 8, 19));
         newAppointmentDto.setCreatedAt(LocalDateTime.now());
 
         // ADD NEW APPOINTMENT
@@ -106,13 +109,27 @@ public class AppointmentTests {
         // Update Appointment
         System.out.println("Update Appointment: ");
         addedAppointmentDto.setTime(LocalTime.of(7, 35));
-        AppointmentDto updatedAppointment = appointmentService.updateAppointment(addedAppointmentDto);
+        AppointmentDto updatedAppointment = appointmentService.updateAppointment(addedAppointmentDto.getId(), addedAppointmentDto);
         System.out.println(updatedAppointment);
 
         // Cancel Appointment
         System.out.println("Cancel Appointment: ");
-        System.out.println(appointmentService.cancelAppointment(addedAppointmentDto));
+        System.out.println(appointmentService.cancelAppointmentById(addedAppointmentDto.getId()));
 
 //        String cancelAppointmentById(Long appointmentId);
+    }
+
+    @Test
+    public void testAddAppointment() {
+        AppointmentDto newAppointmentDto = new AppointmentDto();
+        newAppointmentDto.setReason("Chest Pain.");
+        newAppointmentDto.setTime(LocalTime.of(8, 30));
+        newAppointmentDto.setDate(LocalDate.of(2025, 8, 19));
+        newAppointmentDto.setCreatedAt(LocalDateTime.now());
+        AppointmentDto addedAppointmentDto = appointmentService.scheduleAppointment(newAppointmentDto, 8L, 13L);
+        System.out.println(addedAppointmentDto);
+
+        appointmentService.cancelAppointmentById(addedAppointmentDto.getId());
+
     }
 }

@@ -12,12 +12,22 @@ public class PatientDto {
     private String phoneNo;
     private String email;
     private Integer age;
+    private List<AppointmentDto> appointmentDtos = new ArrayList<>();
 
     public PatientDto() {
     }
 
     public PatientDto(Long id, String name, LocalDate birthDate, String gender, String phoneNo, String email, Integer age) {
         this.id = id;
+        this.name = name;
+        this.birthDate = birthDate;
+        this.gender = gender;
+        this.phoneNo = phoneNo;
+        this.email = email;
+        this.age = age;
+    }
+
+    public PatientDto(String name, LocalDate birthDate, String gender, String phoneNo, String email, Integer age) {
         this.name = name;
         this.birthDate = birthDate;
         this.gender = gender;
@@ -80,6 +90,14 @@ public class PatientDto {
 
     public void setAge(Integer age) {
         this.age = age;
+    }
+
+    public List<AppointmentDto> getAppointmentDtos() {
+        return appointmentDtos;
+    }
+
+    public void setAppointmentDtos(List<AppointmentDto> appointmentDtos) {
+        this.appointmentDtos = appointmentDtos;
     }
 
     @Override

@@ -1,7 +1,6 @@
 package com.clinic.main;
 
 import com.clinic.main.dtos.PatientDto;
-import com.clinic.main.service.PatientAppointmentFacade;
 import com.clinic.main.service.PatientService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,9 +15,6 @@ public class PatientTests {
     @Autowired
     private PatientService patientService;
 
-    @Autowired
-    private PatientAppointmentFacade patientAppointmentFacade;
-
     @Test
     public void testPatientService() {
         PatientDto p = new PatientDto();
@@ -31,7 +27,7 @@ public class PatientTests {
 
         p = patientService.getPatientDtoById(1L);
         p.setBirthDate(LocalDate.of(2004, 3, 30));
-        patientAppointmentFacade.updatePatient(p);
+        patientService.updatePatient(p.getId(), p);
 
         System.out.println("Get All: "+patientService.getAllPatientDto());
     }
@@ -65,16 +61,23 @@ public class PatientTests {
         p.setGender("Male");
         p.setPhoneNo("89483479588");
 
-        PatientDto addedPatient = patientAppointmentFacade.addPatient(p);
+        PatientDto addedPatient = patientService.addPatient(p);
         System.out.println("New Patient Added: "+ addedPatient);
 
         // Update Patient Detail
         addedPatient.setEmail("raju.gh0ate@gmail.com");
-        PatientDto updatedPatient = patientAppointmentFacade.updatePatient(addedPatient);
+        PatientDto updatedPatient = patientService.updatePatient(addedPatient.getId(), addedPatient);
         System.out.println("Updated Patient: "+updatedPatient);
 
         // Delete Patient By ID
         System.out.println(patientService.deletePatientById(updatedPatient.getId()));
+    }
+
+    @Test
+    public void testGetPatients() {
+        // View All Patients
+        System.out.println("All Patients: ");
+        displayPatients(patientService.getAllPatientDto());
     }
 
     private void displayPatients(List<PatientDto> patientDtos) {

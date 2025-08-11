@@ -17,8 +17,14 @@ public interface PatientService {
     List<PatientDto> getPatientDtoBetweenAge(Integer lowerAge, Integer upperAge);
     // Page Of Patient
     List<PatientDto> getPatientDtoPage(Integer pageNumber, Integer pageSize, String sortBy);
-    // Delete Patient By ID
-    String deletePatientById(Long patientId);
+
+    // MODIFICATIONS
+    // ADD Patient
+    PatientDto addPatient(PatientDto patientDto);
     // Update fields by ID
     PatientDto updateField(Long id, Map<String, Object> updates);
+    // Patient Updates
+    PatientDto updatePatient(Long patientId, PatientDto patientDto);
+    // Delete Patient By ID
+    String deletePatientById(Long patientId);
 }
