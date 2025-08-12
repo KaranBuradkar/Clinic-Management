@@ -30,7 +30,7 @@ public interface PatientRepository extends JpaRepository<Patient, Long> {
 
     // Filter patients by age range
     @Query(value = "SELECT * FROM Patients WHERE age > ?1 and age < ?2", nativeQuery = true)
-    Optional<List<Patient>> findPatientBetweenAge(Integer lowerAge, Integer higherAge);
+    List<Patient> findPatientBetweenAge(Integer lowerAge, Integer higherAge);
 
     // Pagination
     Page<Patient> findAll(Pageable pageable);

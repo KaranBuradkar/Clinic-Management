@@ -7,6 +7,8 @@ import com.clinic.main.entityMapper.DoctorMapper;
 import com.clinic.main.repository.DoctorRepository;
 import com.clinic.main.service.DoctorService;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,6 +22,7 @@ import java.util.List;
 @Transactional
 public class DoctorServiceImpl implements DoctorService {
 
+    private static final Logger log = LoggerFactory.getLogger(DoctorServiceImpl.class);
     private final DoctorRepository doctorRepository;
     private final DoctorMapper doctorMapper;
 
@@ -29,14 +32,12 @@ public class DoctorServiceImpl implements DoctorService {
         this.doctorMapper = doctorMapper;
     }
 
+    @Override
     public List<DoctorDto> getAllDoctorDtos() {
-        List<Doctor> doctors = getAllDoctorsAsEntities();
+        List<Doctor> doctors = doctorRepository.findAll(Sort.by("id").ascending());
         return doctors.stream()
                 .map(doctorMapper::toDto)
                 .toList();
-    }
-    List<Doctor> getAllDoctorsAsEntities() {
-        return doctorRepository.findAll(Sort.by("id").ascending());
     }
 
     @Override
@@ -44,33 +45,22 @@ public class DoctorServiceImpl implements DoctorService {
         return doctorRepository.findDoctorDtoById(doctorId)
                 .orElseThrow(() -> new DoctorNotFoundException("Doctor Not Found with Id: "+doctorId));
     }
-    @Transactional
-    Doctor getDoctorByIdAsEntity(Long doctorId) {
-        return doctorRepository.findById(doctorId)
-                .orElseThrow(() -> new DoctorNotFoundException("Doctor Not Found with Id: "+doctorId));
-    }
 
     @Override
     public List<DoctorDto> getAPageOfDoctorDto(Integer pageNumber, Integer pageSize, String sortBy) {
-        List<Doctor> doctors = getAPageOfDoctorAsEntities(pageNumber, pageSize, sortBy);
+        Page<Doctor> doctorsPage = doctorRepository.findAll(PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.ASC, sortBy)));
+        List<Doctor> doctors =  doctorsPage.toList();
         return doctors.stream()
                 .map(doctorMapper::toDto)
                 .toList();
-    }
-    List<Doctor> getAPageOfDoctorAsEntities(Integer pageNumber, Integer pageSize, String sortBy) {
-        Page<Doctor> doctors = doctorRepository.findAll(PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.ASC, sortBy)));
-        return doctors.toList();
     }
 
     @Override
     public List<DoctorDto> getDoctorDtosBySpecialization(String specialization) {
-        List<Doctor> doctors = getDoctorBySpecializationAsEntities(specialization);
+        List<Doctor> doctors = doctorRepository.findBySpecialization(specialization);
         return doctors.stream()
                 .map(doctorMapper::toDto)
                 .toList();
-    }
-    List<Doctor> getDoctorBySpecializationAsEntities(String specialization) {
-        return doctorRepository.findBySpecialization(specialization);
     }
 
     @Override
@@ -95,29 +85,38 @@ public class DoctorServiceImpl implements DoctorService {
     }
 
     @Override
-    public DoctorDto addDoctor(DoctorDto doctorDto) {
-        if (doctorDto.getId() != null)
-            throw new IllegalArgumentException("Doctor Id Must be null!");
-        Doctor doctor = doctorMapper.toEntity(doctorDto);
-        return doctorMapper.toDto(addDoctor(doctor));
-    }
     @Transactional
-    Doctor addDoctor(Doctor doctor) {
-        System.out.println(doctor);
-        return doctorRepository.save(doctor);
+    @Modifying
+    public DoctorDto addDoctor(DoctorDto doctorDto) {
+        if (doctorDto.getId() != null) {
+            log.error("doesn't required doctorId-{}, Database automatically generate it! ",doctorDto.getId());
+            throw new IllegalArgumentException("Doctor Id Must be null!");
+        }
+
+        Doctor doctor = doctorMapper.toEntity(doctorDto);
+
+        Doctor addedDoctor = doctorRepository.save(doctor);
+
+        log.info("New Doctor entry created Id-{}", addedDoctor.getId());
+
+        return doctorMapper.toDto(addedDoctor);
     }
 
+    @Transactional
+    @Modifying
     @Override
     public DoctorDto updateDoctor(Long doctorId, DoctorDto doctorDto) {
-        if (doctorRepository.existsById(doctorId))
-            throw new IllegalArgumentException();
-        Doctor doctor = doctorMapper.toEntity(doctorDto);
-        doctor.setId(doctorId);
-        return doctorMapper.toDto(updateDoctor(doctor));
-    }
-    @Modifying
-    @Transactional
-    Doctor updateDoctor(Doctor doctor) {
-        return doctorRepository.save(doctor);
+        Doctor doctor = doctorRepository.findById(doctorId).orElseThrow(() -> {
+            log.error("invalid doctorId-{} provided", doctorId);
+            return new DoctorNotFoundException("invalid doctorId-" + doctorId + " provided");
+        });
+
+        Doctor newDoctor = doctorMapper.toEntity(doctorDto);
+
+        doctor.getAppointments().addAll(newDoctor.getAppointments());
+        Doctor updatedDoctor = doctorRepository.save(doctor);
+        log.info("Doctor detail updated for Id-{}", updatedDoctor.getId());
+
+        return doctorMapper.toDto(updatedDoctor);
     }
 }

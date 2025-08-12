@@ -7,11 +7,14 @@ import com.clinic.main.entity.Appointment;
 import com.clinic.main.entity.Doctor;
 import com.clinic.main.entity.Patient;
 import com.clinic.main.entityMapper.AppointmentMapper;
+import com.clinic.main.entityMapper.DoctorMapper;
+import com.clinic.main.entityMapper.PatientMapper;
 import com.clinic.main.repository.AppointmentRepository;
 import com.clinic.main.service.AppointmentService;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.Modifying;
@@ -24,185 +27,170 @@ import java.util.List;
 @Transactional
 public class AppointmentServiceImpl implements AppointmentService {
 
+    private static final Logger log = LoggerFactory.getLogger(AppointmentServiceImpl.class);
     private final AppointmentMapper appointmentMapper;
+    private final PatientMapper patientMapper;
+    private final DoctorMapper doctorMapper;
 
     private final AppointmentRepository appointmentRepository;
     private final DoctorServiceImpl doctorServiceImpl;
     private final PatientServiceImpl patientServiceImpl;
 
     @Autowired
-    public AppointmentServiceImpl(
-            AppointmentMapper appointmentMapper, AppointmentRepository appointmentRepository,
-            DoctorServiceImpl doctorServiceImpl, PatientServiceImpl patientServiceImpl) {
+    public AppointmentServiceImpl(AppointmentMapper appointmentMapper,
+                                  PatientMapper patientMapper, DoctorMapper doctorMapper,
+                                  AppointmentRepository appointmentRepository, DoctorServiceImpl doctorServiceImpl,
+                                  PatientServiceImpl patientServiceImpl) {
         this.appointmentMapper = appointmentMapper;
+        this.patientMapper = patientMapper;
+        this.doctorMapper = doctorMapper;
         this.appointmentRepository = appointmentRepository;
         this.doctorServiceImpl = doctorServiceImpl;
         this.patientServiceImpl = patientServiceImpl;
     }
 
-    // View appointments by patient ID
-    public List<AppointmentDto> getAppointmentByPatientId(Long patientId) {
-        List<Appointment> appointments = appointmentRepository.findByPatient_Id(patientId);
-        return appointments.stream()
-                .map(appointmentMapper::toDto)
-                .toList();
-    }
 
-    public List<AppointmentPerDoctorDTO> getAppointmentCountPerDoctor() {
-        return appointmentRepository.countAppointmentsPerDoctor();
-    }
-
-    public List<AppointmentDto> getAppointmentPage(Integer pageNumber, Integer pageSize, String sortBy) {
-        Page<Appointment> appointments = appointmentRepository.findAll(PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.ASC, sortBy)));
-        return appointments.stream()
-                .map(appointmentMapper::toDto)
-                .toList();
-    }
-
-    // Sort appointments by date or time - default - .findAll(Sort.by("date", "time").ascending);
-    public List<AppointmentDto> getAppointmentsOrderByDateAndTime() {
-        List<Appointment> appointments = appointmentRepository.findAll(Sort.by("date", "time").ascending());
-        return appointments.stream()
-                .map(appointmentMapper::toDto)
-                .toList();
-    }
 
     @Override
     @Transactional
     public AppointmentDto scheduleAppointment(AppointmentDto appointmentDto) {
+        // Removed log.info("Scheduling appointment from DTO: {}", appointmentDto); due to potential PII
         Appointment appointment = appointmentMapper.toEntity(appointmentDto);
-        return appointmentMapper.toDto(scheduleAppointment(appointment));
+        Appointment savedAppointment = appointmentRepository.save(appointment);
+        log.info("Successfully scheduled appointment with ID: {}", savedAppointment.getId());
+        return appointmentMapper.toDto(savedAppointment);
     }
 
+    @Override
     @Transactional
     @Modifying
-    @Override
     public AppointmentDto scheduleAppointment(AppointmentDto appointmentDto, Long patientId, Long doctorId) {
+        log.info("Scheduling appointment for patient ID {} with doctor ID {}", patientId, doctorId);
         if (appointmentDto.getId() != null) {
+            log.warn("Attempt to schedule an appointment with a pre-existing ID.");
             throw new IllegalArgumentException("AppointmentId must be NULL With Id: "+appointmentDto.getId());
         }
+
         Appointment appointment = appointmentMapper.toEntity(appointmentDto);
-        Patient patient = patientServiceImpl.getPatientByIdAsEntity(patientId);
-        Doctor doctor = doctorServiceImpl.getDoctorByIdAsEntity(doctorId);
+        Patient patient = patientMapper.toEntity(patientServiceImpl.getPatientDtoById(patientId));
+        Doctor doctor = doctorMapper.toEntity(doctorServiceImpl.getDoctorDtoById(doctorId));
+
         appointment.setDoctor(doctor);
         appointment.setPatient(patient);
+
         Appointment savedAppointment = appointmentRepository.save(appointment);
+        log.info("Appointment successfully scheduled with ID: {}", savedAppointment.getId());
+
         // Bidirectional Consistency
         patient.getAppointments().add(savedAppointment);
         doctor.getAppointments().add(savedAppointment);
         return appointmentMapper.toDto(savedAppointment);
     }
 
-    // Schedule appointment - default - .save(appointment);
-    @Modifying
-    @Transactional
-    Appointment scheduleAppointment(Appointment appointment) {
-        return appointmentRepository.save(appointment);
-    }
-
     @Override
     public List<AppointmentDto> getAllAppointmentDtos(String sortBy) {
-        List<Appointment> appointments = getAllAppointmentDto(sortBy);
+        log.info("Fetching all appointments, sorted by {}.", sortBy);
+        List<Appointment> appointments = appointmentRepository.findAll(Sort.by(Sort.Direction.ASC, sortBy));
         return appointments.stream()
                 .map(appointmentMapper::toDto)
                 .toList();
-    }
-    // View all appointments - default - .findAll();
-    public List<Appointment> getAllAppointmentDto(String sortBy) {
-        return appointmentRepository.findAll(Sort.by(Sort.Direction.ASC, sortBy));
     }
 
     @Override
     public AppointmentDto getAppointmentDtoById(Long appointmentId) {
-        return appointmentMapper.toDto(getAppointmentByIdAsEntity(appointmentId));
-    }
-    // View appointment by ID - default - .findById(appointmentId);
-    Appointment getAppointmentByIdAsEntity(Long appointmentId) {
-        return appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new AppointmentNotFoundException("Appointment Not Found With Id: "+appointmentId));
-    }
-    List<Appointment> getAppointmentsByIdAsEntities(List<Long> appointmentIds) {
-        return appointmentIds.stream()
-                .map(this::getAppointmentByIdAsEntity)
-                .toList();
+        log.trace("Attempting to find appointment entity by ID: {}", appointmentId);
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> {
+                    log.error("Appointment with ID {} not found.", appointmentId);
+                    return new AppointmentNotFoundException("Appointment Not Found With Id: " + appointmentId);
+                });
+        return appointmentMapper.toDto(appointment);
     }
 
     @Override
     public List<AppointmentDto> getAppointmentDtosOfDoctorId(Long doctorId) {
-        List<Appointment> appointments = getAppointmentByDoctorIdAsEntity(doctorId);
+        log.debug("Fetching appointments for doctor with ID: {}", doctorId);
+        List<Appointment> appointments = appointmentRepository.findByDoctor_Id(doctorId);
+        log.debug("Found {} appointments for doctor ID: {}", appointments.size(), doctorId);
         return appointments.stream()
                 .map(appointmentMapper::toDto)
                 .toList();
-    }
-    // View appointments by doctor ID
-    List<Appointment> getAppointmentByDoctorIdAsEntity(Long doctorId) {
-        return appointmentRepository.findByDoctor_Id(doctorId);
     }
 
     @Override
     public List<AppointmentDto> getAppointmentDtosOfPatientId(Long patientId) {
-        List<Appointment> appointments = getAppointmentByPatientIdAsEntity(patientId);
+        log.debug("Fetching appointments for patient with ID: {}", patientId);
+        List<Appointment> appointments = appointmentRepository.findByPatient_Id(patientId);
+
+        log.debug("Found {} appointments for patient ID: {}", appointments.size(), patientId);
         return appointments.stream()
                 .map(appointmentMapper::toDto)
                 .toList();
-    }
-    // View appointments by patient ID
-    List<Appointment> getAppointmentByPatientIdAsEntity(Long patientId) {
-        return appointmentRepository.findByPatient_Id(patientId);
     }
 
     @Override
     public List<AppointmentDto> getAppointmentDtosByDate(LocalDate date) {
-        List<Appointment> appointments = getAppointmentByDateAsEntity(date);
+        log.debug("Fetching appointments for date: {}", date);
+        List<Appointment> appointments = appointmentRepository.findByDate(date);
+        log.debug("Found {} appointments for date: {}", appointments.size(), date);
         return appointments.stream()
                 .map(appointmentMapper::toDto)
                 .toList();
     }
-    // View appointments by Date
-    List<Appointment> getAppointmentByDateAsEntity(LocalDate date) {
-        return appointmentRepository.findByDate(date);
-    }
 
     @Override
     public List<AppointmentDto> getUpcomingAppointmentDtos() {
+        log.info("Fetching upcoming appointments.");
         List<Appointment> appointments = appointmentRepository.findUpcomingAppointments();
+        log.debug("Found {} upcoming appointments.", appointments.size());
         return appointments.stream()
                 .map(appointmentMapper::toDto)
                 .toList();
     }
 
     // Cancel appointment - default - .deleteById(appointment);
+    @Override
     @Modifying
     @Transactional
     public String cancelAppointmentById(Long appointmentId) {
-        if (!appointmentRepository.existsById(appointmentId))
+        log.info("Attempting to cancel appointment with ID: {}", appointmentId);
+        if (!appointmentRepository.existsById(appointmentId)) {
+            log.error("Failed to cancel: Appointment with ID {} doesn't exist.", appointmentId);
             throw new AppointmentNotFoundException("Appointment Doesn't Exist For Id: "+appointmentId);
+        }
         appointmentRepository.deleteById(appointmentId);
+        log.info("Appointment with ID {} successfully canceled.", appointmentId);
         return "Appointment Cancel Successfully!";
     }
 
     @Override
+    @Transactional
     public AppointmentDto updateAppointment(Long appointmentId, AppointmentDto appointmentDto) {
+
+        if (!appointmentRepository.existsById(appointmentId)) {
+            log.error("Failed to update: Appointment with ID {} not found.", appointmentId);
+            throw new AppointmentNotFoundException("Appointment Not Found With Id: "+appointmentId);
+        }
+
+        log.info("Updating appointment with ID {}.", appointmentId);
         Appointment appointment = appointmentMapper.toEntity(appointmentDto);
         appointment.setId(appointmentId); // For update ID required.
-        return appointmentMapper.toDto(updateAppointment(appointment));
+
+        Appointment updatedAppointment = appointmentRepository.save(appointment);
+        log.info("Appointment with ID {} updated successfully.", updatedAppointment.getId());
+        return appointmentMapper.toDto(updatedAppointment);
     }
-    // Update appointment - default - .save(appointment);
-    @Modifying
-    @Transactional
-    Appointment updateAppointment(Appointment appointment) {
-        if (!appointmentRepository.existsById(appointment.getId()))
-            throw new AppointmentNotFoundException("Appointment Not Found With Id: "+appointment.getId());
-        return appointmentRepository.save(appointment);
-    }
+
 
     @Override
     public List<AppointmentPerDoctorDTO> getCountAppointmentsPerDoctor() {
+        log.info("Counting appointments per doctor.");
         return appointmentRepository.countAppointmentsPerDoctor();
     }
 
     @Override
     public List<AppointmentDto> getOrderedAppointmentDtosByDateAndTime() {
+        log.info("Fetching and ordering appointments by date and time.");
         List<Appointment> appointments = getOrderedAppointmentByDateAndTimeAsEntities();
         return appointments.stream()
                 .map(appointmentMapper::toDto)
@@ -214,7 +202,11 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public List<AppointmentDto> getAppointmentDtoPage(Integer pageNumber, Integer pageSize, String sortBy) {
-        List<Appointment> appointments = getAppointmentPageAsEntities(pageNumber, pageSize, sortBy);
+        log.info("Fetching appointment page {} with size {} and sorting by {}.", pageNumber, pageSize, sortBy);
+        List<Appointment> appointments = appointmentRepository
+                .findAll(PageRequest.of(pageNumber, pageSize,
+                        Sort.by(Sort.Direction.ASC, sortBy, "time"))).toList();
+
         return appointments.stream()
                 .map(appointmentMapper::toDto)
                 .toList();
@@ -222,6 +214,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public List<AppointmentDto> getAppointmentsFiltered(Long doctorId, Long patientId, LocalDate date, int page, int size, String sortBy) {
+        log.info("Filtering appointments with parameters: doctorId={}, patientId={}, date={}, page={}, size={}, sortBy={}", doctorId, patientId, date, page, size, sortBy);
         if (doctorId != null) {
             return getAppointmentDtosOfDoctorId(doctorId);
         }
@@ -234,7 +227,4 @@ public class AppointmentServiceImpl implements AppointmentService {
         return getAppointmentDtoPage(page, size, sortBy);
     }
 
-    List<Appointment> getAppointmentPageAsEntities(Integer pageNumber, Integer pageSize, String sortBy) {
-        return appointmentRepository.findAll(PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.ASC, sortBy, "time"))).toList();
-    }
 }

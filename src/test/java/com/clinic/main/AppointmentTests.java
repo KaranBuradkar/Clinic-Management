@@ -1,10 +1,7 @@
 package com.clinic.main;
 
-import com.clinic.main.dtos.AppointmentBasicDto;
 import com.clinic.main.dtos.AppointmentDto;
 import com.clinic.main.dtos.AppointmentPerDoctorDTO;
-import com.clinic.main.entity.Appointment;
-import com.clinic.main.repository.AppointmentRepository;
 import com.clinic.main.service.AppointmentService;
 import com.clinic.main.service.DoctorService;
 import com.clinic.main.service.PatientService;

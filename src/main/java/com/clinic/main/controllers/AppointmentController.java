@@ -5,6 +5,8 @@ import com.clinic.main.dtos.AppointmentPerDoctorDTO;
 import com.clinic.main.dtos.AppointmentRequestDto;
 import com.clinic.main.entityMapper.AppointmentMapper;
 import com.clinic.main.service.AppointmentService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +19,8 @@ import java.util.List;
 @RequestMapping("/api/appointments")
 public class AppointmentController {
 
+    private static final Logger log = LoggerFactory.getLogger(AppointmentController.class);
+
     private final AppointmentService appointmentService;
     private final AppointmentMapper appointmentMapper;
 
@@ -27,6 +31,7 @@ public class AppointmentController {
 
     @PostMapping
     public ResponseEntity<AppointmentDto> scheduleAppointment(@RequestBody AppointmentRequestDto request) {
+        log.info("Appointment Request: {}", request);
         AppointmentDto dto = appointmentMapper.toDto(request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(appointmentService.scheduleAppointment(dto, request.getPatientId(), request.getDoctorId()));

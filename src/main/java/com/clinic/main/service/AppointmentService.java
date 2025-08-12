@@ -11,6 +11,7 @@ import java.util.List;
 @Service
 public interface AppointmentService {
 
+    // MODIFICATIONS
     // Schedule appointment
     AppointmentDto scheduleAppointment(AppointmentDto appointmentDto);
 

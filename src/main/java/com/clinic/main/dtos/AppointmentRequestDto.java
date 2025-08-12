@@ -6,7 +6,6 @@ import java.time.LocalTime;
 
 public class AppointmentRequestDto {
 
-    private Long id;
     private String reason;
     private LocalDate date;
     private LocalTime time;
@@ -15,14 +14,6 @@ public class AppointmentRequestDto {
     private Long patientId;
 
     public AppointmentRequestDto() {
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public String getReason() {
@@ -76,7 +67,6 @@ public class AppointmentRequestDto {
     @Override
     public String toString() {
         return "AppointmentRequestDto{" +
-                "id=" + id +
                 ", reason='" + reason + '\'' +
                 ", date=" + date +
                 ", time=" + time +

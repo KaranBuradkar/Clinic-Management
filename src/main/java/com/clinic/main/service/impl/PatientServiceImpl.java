@@ -7,8 +7,9 @@ import com.clinic.main.entityMapper.PatientMapper;
 import com.clinic.main.repository.PatientRepository;
 import com.clinic.main.service.PatientService;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.Modifying;
@@ -21,12 +22,11 @@ import java.util.Map;
 @Transactional
 public class PatientServiceImpl implements PatientService {
 
+    private static final Logger log = LoggerFactory.getLogger(PatientServiceImpl.class);
     private final PatientRepository patientRepository;
     private final PatientMapper patientMapper;
 
-//    private final ModelMapper modelMapper;
-
-
+    @Autowired
     public PatientServiceImpl(PatientRepository patientRepository, PatientMapper patientMapper) {
         this.patientRepository = patientRepository;
         this.patientMapper = patientMapper;
@@ -34,57 +34,54 @@ public class PatientServiceImpl implements PatientService {
 
     @Override
     public PatientDto getPatientDtoById(Long patientId) {
-//        return PatientMapper.mapToDto(getPatientByIdAsEntity(patientId));
         return patientRepository.findPatientDtoById(patientId)
-                .orElseThrow(() -> new PatientNotFoundException("Patient Not Found With ID: "+patientId));
-    }
-    @Transactional
-    Patient getPatientByIdAsEntity(Long patientId) {
-        return patientRepository.findPatientById(patientId)
-                .orElseThrow(() -> new PatientNotFoundException("Patient Not Found With ID: "+patientId));
+                .orElseThrow(() -> {
+                    log.error("Invalid patientId-{} provided", patientId);
+                    return new PatientNotFoundException("Patient Not Found With ID: "+patientId);
+                });
     }
 
     @Override
     public List<PatientDto> getAllPatientDto() {
+        List<Patient> patients = patientRepository.getAllPatient();
 
-//        return PatientMapper.mapToDto(getAllPatientsAsEntity());
-        List<Patient> patients = getAllPatientsAsEntity();
         return patients.stream()
-                .map(patient -> patientMapper.toDto(patient))
+                .map(patientMapper::toDto)
                 .toList();
-    }
-    List<Patient> getAllPatientsAsEntity() {
-        return patientRepository.getAllPatient();
     }
 
     @Override
     public List<PatientDto> getPatientDtoBetweenAge(Integer lowerAge, Integer upperAge) {
-        List<Patient> patients = getPatientBetweenAgeAsEntity(lowerAge, upperAge);
+        List<Patient> patients = patientRepository.findPatientBetweenAge(lowerAge, upperAge);
         return patients.stream()
-                .map(patient -> patientMapper.toDto(patient))
+                .map(patientMapper::toDto)
                 .toList();
-    }
-    List<Patient> getPatientBetweenAgeAsEntity(Integer lowerAge, Integer upperAge) {
-        return patientRepository.findPatientBetweenAge(lowerAge, upperAge)
-                .orElseThrow(() -> new PatientNotFoundException("Patient Not Found With Id: Age"));
     }
 
     @Override
     public List<PatientDto> getPatientDtoPage(Integer pageNumber, Integer pageSize, String sortBy) {
-        List<Patient> patients = getPatientDtoPageAsEntities(pageNumber, pageSize, sortBy);
+        List<Patient> patients = patientRepository.findAll(
+                        PageRequest.of(pageNumber,
+                                pageSize,
+                                Sort.by(Sort.Direction.ASC, sortBy)
+                        )
+                ).toList();
+
         return patients.stream()
-                .map(patient -> patientMapper.toDto(patient))
+                .map(patientMapper::toDto)
                 .toList();
-    }
-    List<Patient> getPatientDtoPageAsEntities(Integer pageNumber, Integer pageSize, String sortBy) {
-        Page<Patient> pageOfPatients = patientRepository.findAll(PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.ASC, sortBy)));
-        return pageOfPatients.toList();
     }
 
     @Override
     public String deletePatientById(Long patientId) {
-        if (!patientRepository.existsById(patientId)) return "Patient Detail Doesn't Exist!";
+        if (!patientRepository.existsById(patientId)) {
+            log.error("Invalid patientId-{} provided for deletion", patientId);
+            throw new PatientNotFoundException("Patient Detail Doesn't Exist!");
+        }
+
         patientRepository.deleteById(patientId);
+        log.error("Patient detail deleted From db for Id-{}", patientId);
+
         return "Patient Successfully Removed From Data!";
     }
 
@@ -112,40 +109,32 @@ public class PatientServiceImpl implements PatientService {
 
     @Override
     public PatientDto addPatient(PatientDto patientDto) {
-        if (patientDto.getId() != null)
-            throw  new IllegalArgumentException("Patient Id must null!!");
+        if (patientDto.getId() != null) {
+            log.error("doesn't required patientId-{}, Database automatically generate it! ",patientDto.getId());
+            throw new IllegalArgumentException("Patient Id must null!!");
+        }
+
         Patient patient = patientMapper.toEntity(patientDto);
-        return patientMapper.toDto(addPatient(patient));
+
+        Patient addedPatient = patientRepository.save(patient);
+
+        log.info("New Patient Entry created with Id-{}", addedPatient.getId());
+        return patientMapper.toDto(addedPatient);
     }
 
     @Override
     public PatientDto updatePatient(Long patientId, PatientDto patientDto) {
-        if (!patientRepository.existsById(patientId))
+        if (!patientRepository.existsById(patientId)) {
+            log.error("invalid patientId-{} provided", patientId);
             throw new IllegalArgumentException("Patient doesn't exist for Id: "+patientId);
+        }
+
         Patient patient = patientMapper.toEntity(patientDto);
         patient.setId(patientId);
-        return patientMapper.toDto(updatePatient(patient));
-    }
 
-    @Transactional
-    Patient addPatient(Patient patient) {
-        return patientRepository.save(patient);
-    }
+        Patient updatedPatient = patientRepository.save(patient);
+        log.info("Patient detail has been updated for Id-{}", updatedPatient.getId());
 
-    @Modifying
-    @Transactional
-    Patient updatePatient(Patient patient) {
-        return patientRepository.save(patient);
-    }
-
-    public String deletePatient(PatientDto patientDto) {
-        Patient patient = patientMapper.toEntity(patientDto);
-        return deletePatient(patient);
-    }
-    @Modifying
-    @Transactional
-    String deletePatient(Patient patient) {
-        if (patientRepository.existsById(patient.getId())) patientRepository.delete(patient);
-        return "Patient Successfully Removed From Data!";
+        return patientMapper.toDto(updatedPatient);
     }
 }
