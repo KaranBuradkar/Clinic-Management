@@ -37,12 +37,27 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<ApiResponse>(apiResponse, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ApiResponse> userNotFoundException(UserNotFoundException exception) {
+        String message = exception.getMessage();
+        ApiResponse apiResponse = new ApiResponse(HttpStatus.NOT_FOUND, LocalDateTime.now(), message, exception.getClass().toString());
+        return new ResponseEntity<ApiResponse>(apiResponse, HttpStatus.NOT_FOUND);
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiResponse> illegalArgumentException(IllegalArgumentException exception) {
         String message = exception.getMessage();
         ApiResponse apiResponse = new ApiResponse(HttpStatus.BAD_REQUEST, LocalDateTime.now(), message, exception.getClass().toString());
         return new ResponseEntity<>(apiResponse, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ApiResponse> runtimeException(RuntimeException exception) {
+        String message = exception.getMessage();
+        ApiResponse apiResponse = new ApiResponse(HttpStatus.BAD_REQUEST, LocalDateTime.now(), message, exception.getClass().toString());
+        return new ResponseEntity<>(apiResponse, HttpStatus.BAD_REQUEST);
+    }
+
 
     @ExceptionHandler(SQLException.class)
     public ResponseEntity<ApiResponse> sqlUnexpectedException(SQLException sqlException) {
