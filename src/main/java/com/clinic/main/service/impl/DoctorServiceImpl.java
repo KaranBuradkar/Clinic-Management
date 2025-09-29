@@ -39,7 +39,7 @@ public class DoctorServiceImpl implements DoctorService {
     }
 
     @Override
-    public List<DoctorDto> getAPageOfDoctorDto(Integer pageNumber, Integer pageSize, String sortBy, String dir) {
+    public List<DoctorDto> getDoctors(Integer pageNumber, Integer pageSize, String sortBy, String dir) {
         Sort.Direction direction = "asc".equalsIgnoreCase(dir) ? Sort.Direction.ASC : Sort.Direction.DESC;
         Page<Doctor> doctorsPage = doctorRepository.findAll(
                 PageRequest.of(

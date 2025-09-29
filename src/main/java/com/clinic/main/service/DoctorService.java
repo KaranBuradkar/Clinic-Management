@@ -11,7 +11,7 @@ public interface DoctorService {
     // View Doctor By ID
     DoctorDto getDoctorById(Long doctorId);
     // View Doctor Page
-    List<DoctorDto> getAPageOfDoctorDto(Integer pageNumber, Integer pageSize, String sortBy, String dir);
+    List<DoctorDto> getDoctors(Integer pageNumber, Integer pageSize, String sortBy, String dir);
     // View Doctors By Specialization
     List<DoctorDto> getDoctorsBySpecialization(String specialization);
     // View Sorted Doctor By name

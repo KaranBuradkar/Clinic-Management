@@ -47,7 +47,7 @@ public class PatientTests {
 
         // Page Of Patient
         System.out.println("Page of Patient: ");
-        displayPatients(patientService.getPatientDtoPage(0, 3, "id", dir));
+        displayPatients(patientService.getPatientDtoPage(0, 3, "id", "asc"));
 
     }
 

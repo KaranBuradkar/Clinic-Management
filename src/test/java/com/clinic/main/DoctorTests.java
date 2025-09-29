@@ -19,7 +19,7 @@ public class DoctorTests {
     public void testRepositoryGetMethods() {
         // View All Doctors
         System.out.println("All Doctors: ");
-        List<DoctorDto> doctorDtos = doctorService.getDoctors();
+        List<DoctorDto> doctorDtos = doctorService.getDoctorsSortBy("name");
         displayDoctors(doctorDtos);
 
         // View Doctor By ID
@@ -29,7 +29,7 @@ public class DoctorTests {
 
         // View Doctor Page
         System.out.println("Page of Doctors: ");
-        doctorDtos = doctorService.getAPageOfDoctorDto(4, 5, "id", dir);
+        doctorDtos = doctorService.getDoctors(4, 5, "id", "desc");
         displayDoctors(doctorDtos);
 
         // View Doctors By Specialization

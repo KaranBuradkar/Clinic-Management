@@ -37,7 +37,7 @@ public class DoctorController {
         if (specialization != null) {
             return ResponseEntity.ok(doctorService.getDoctorsBySpecialization(specialization));
         }
-        return ResponseEntity.ok(doctorService.getAPageOfDoctorDto(page, size, sortBy, dir));
+        return ResponseEntity.ok(doctorService.getDoctors(page, size, sortBy, dir));
     }
 
     // Get doctor by ID

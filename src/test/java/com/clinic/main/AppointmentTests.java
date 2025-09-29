@@ -82,7 +82,7 @@ public class AppointmentTests {
         System.out.println("View Appointment in order of date and time: "+appointmentDtos);
 
         // View Appointments in Page
-        appointmentDtos = appointmentService.getAppointmentPage(0, 4, "id", dir);
+        appointmentDtos = appointmentService.getAppointmentPage(0, 4, "id", "asc");
         System.out.println("View Appointments in Page: "+appointmentDtos);
     }
 
