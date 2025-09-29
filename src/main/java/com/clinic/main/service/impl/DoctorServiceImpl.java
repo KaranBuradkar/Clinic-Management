@@ -33,22 +33,22 @@ public class DoctorServiceImpl implements DoctorService {
     }
 
     @Override
-    public List<DoctorDto> getAllDoctorDtos() {
-        List<Doctor> doctors = doctorRepository.findAll(Sort.by("id").ascending());
-        return doctors.stream()
-                .map(doctorMapper::toDto)
-                .toList();
-    }
-
-    @Override
-    public DoctorDto getDoctorDtoById(Long doctorId) {
+    public DoctorDto getDoctorById(Long doctorId) {
         return doctorRepository.findDoctorDtoById(doctorId)
                 .orElseThrow(() -> new DoctorNotFoundException("Doctor Not Found with Id: "+doctorId));
     }
 
     @Override
-    public List<DoctorDto> getAPageOfDoctorDto(Integer pageNumber, Integer pageSize, String sortBy) {
-        Page<Doctor> doctorsPage = doctorRepository.findAll(PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.ASC, sortBy)));
+    public List<DoctorDto> getAPageOfDoctorDto(Integer pageNumber, Integer pageSize, String sortBy, String dir) {
+        Sort.Direction direction = "asc".equalsIgnoreCase(dir) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Page<Doctor> doctorsPage = doctorRepository.findAll(
+                PageRequest.of(
+                        pageNumber,
+                        pageSize,
+                        direction,
+                        sortBy
+                )
+        );
         List<Doctor> doctors =  doctorsPage.toList();
         return doctors.stream()
                 .map(doctorMapper::toDto)
@@ -56,7 +56,7 @@ public class DoctorServiceImpl implements DoctorService {
     }
 
     @Override
-    public List<DoctorDto> getDoctorDtosBySpecialization(String specialization) {
+    public List<DoctorDto> getDoctorsBySpecialization(String specialization) {
         List<Doctor> doctors = doctorRepository.findBySpecialization(specialization);
         return doctors.stream()
                 .map(doctorMapper::toDto)
@@ -64,7 +64,7 @@ public class DoctorServiceImpl implements DoctorService {
     }
 
     @Override
-    public List<DoctorDto> getDoctorDtosSortedBy(String name) {
+    public List<DoctorDto> getDoctorsSortBy(String name) {
         List<Doctor> doctors = getSortDoctorBy(name);
         return doctors.stream()
                 .map(doctorMapper::toDto)

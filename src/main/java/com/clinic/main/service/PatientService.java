@@ -16,7 +16,7 @@ public interface PatientService {
     // View Patients Who is Age between lowerAge and upperAge
     List<PatientDto> getPatientDtoBetweenAge(Integer lowerAge, Integer upperAge);
     // Page Of Patient
-    List<PatientDto> getPatientDtoPage(Integer pageNumber, Integer pageSize, String sortBy);
+    List<PatientDto> getPatientDtoPage(Integer pageNumber, Integer pageSize, String sortBy, String dir);
 
     // MODIFICATIONS
     // ADD Patient
