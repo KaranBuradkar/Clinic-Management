@@ -1,6 +1,5 @@
 package com.clinic.main.service;
 
-import com.clinic.main.dtos.AppointmentBasicDto;
 import com.clinic.main.dtos.AppointmentDto;
 import com.clinic.main.dtos.AppointmentPerDoctorDTO;
 import org.springframework.stereotype.Service;
@@ -17,27 +16,27 @@ public interface AppointmentService {
 
     AppointmentDto scheduleAppointment(AppointmentDto appointmentDto, Long patientId, Long doctorId);
     // View all Appointments
-    List<AppointmentDto> getAllAppointmentDtos(String sortBy);
+    List<AppointmentDto> getAppointments(String sortBy);
     // View Appointment By ID
     AppointmentDto getAppointmentDtoById(Long appointmentId);
     // View Appointments by doctorId
-    List<AppointmentDto> getAppointmentDtosOfDoctorId(Long doctorId);
+    List<AppointmentDto> getAppointmentByDoctorId(Long doctorId);
     // View Appointments by patientId
-    List<AppointmentDto> getAppointmentDtosOfPatientId(Long patientId);
+    List<AppointmentDto> getAppointmentsByPatientId(Long patientId);
     // View Appointments by specific date
-    List<AppointmentDto> getAppointmentDtosByDate(LocalDate date);
+    List<AppointmentDto> getAppointmentsByDate(LocalDate date);
     // View Upcoming Appointments
-    List<AppointmentDto> getUpcomingAppointmentDtos();
+    List<AppointmentDto> getUpcomingAppointments();
     // Cancel Appointment by appointmentId
     String cancelAppointmentById(Long appointmentId);
     // Update Appointment By ID
     AppointmentDto updateAppointment(Long appointmentId, AppointmentDto appointmentDto);
     // View Appointments Per Doctor
-    List<AppointmentPerDoctorDTO> getCountAppointmentsPerDoctor();
+    List<AppointmentPerDoctorDTO> getAppointmentsCountPerDoctor();
     // View Appointment in order of date and time
-    List<AppointmentDto> getOrderedAppointmentDtosByDateAndTime();
+    List<AppointmentDto> getAppointmentsOrderByDateAndTime();
     // View Appointments in Page
-    List<AppointmentDto> getAppointmentDtoPage(Integer pageNumber, Integer pageSize, String sortBy);
+    List<AppointmentDto> getAppointmentPage(Integer pageNumber, Integer pageSize, String sortBy, String dir);
     // Get All Pagination, FilterBy Field and Sorted.
-    List<AppointmentDto> getAppointmentsFiltered(Long doctorId, Long patientId, LocalDate date, int page, int size, String sortBy);
+    List<AppointmentDto> getAppointmentsFiltered(Long doctorId, Long patientId, LocalDate date, int page, int size, String sortBy, String dir);
 }

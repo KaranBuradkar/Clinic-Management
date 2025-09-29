@@ -2,7 +2,6 @@ package com.clinic.main.controllers;
 
 import com.clinic.main.dtos.DoctorDto;
 import com.clinic.main.service.DoctorService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -32,18 +31,19 @@ public class DoctorController {
             @RequestParam(required = false) String specialization,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id") String sortBy
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "ASC") String dir
     ) {
         if (specialization != null) {
-            return ResponseEntity.ok(doctorService.getDoctorDtosBySpecialization(specialization));
+            return ResponseEntity.ok(doctorService.getDoctorsBySpecialization(specialization));
         }
-        return ResponseEntity.ok(doctorService.getAPageOfDoctorDto(page, size, sortBy));
+        return ResponseEntity.ok(doctorService.getDoctors(page, size, sortBy, dir));
     }
 
     // Get doctor by ID
     @GetMapping("/{id}")
     public ResponseEntity<DoctorDto> getDoctorById(@PathVariable Long id) {
-        return ResponseEntity.ok(doctorService.getDoctorDtoById(id));
+        return ResponseEntity.ok(doctorService.getDoctorById(id));
     }
 
     // Update doctor by ID

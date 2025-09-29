@@ -73,7 +73,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         Appointment appointment = appointmentMapper.toEntity(appointmentDto);
         Patient patient = patientMapper.toEntity(patientServiceImpl.getPatientDtoById(patientId));
-        Doctor doctor = doctorMapper.toEntity(doctorServiceImpl.getDoctorDtoById(doctorId));
+        Doctor doctor = doctorMapper.toEntity(doctorServiceImpl.getDoctorById(doctorId));
 
         appointment.setDoctor(doctor);
         appointment.setPatient(patient);
@@ -88,7 +88,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public List<AppointmentDto> getAllAppointmentDtos(String sortBy) {
+    public List<AppointmentDto> getAppointments(String sortBy) {
         log.info("Fetching all appointments, sorted by {}.", sortBy);
         List<Appointment> appointments = appointmentRepository.findAll(Sort.by(Sort.Direction.ASC, sortBy));
         return appointments.stream()
@@ -108,7 +108,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public List<AppointmentDto> getAppointmentDtosOfDoctorId(Long doctorId) {
+    public List<AppointmentDto> getAppointmentByDoctorId(Long doctorId) {
         log.debug("Fetching appointments for doctor with ID: {}", doctorId);
         List<Appointment> appointments = appointmentRepository.findByDoctor_Id(doctorId);
         log.debug("Found {} appointments for doctor ID: {}", appointments.size(), doctorId);
@@ -118,7 +118,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public List<AppointmentDto> getAppointmentDtosOfPatientId(Long patientId) {
+    public List<AppointmentDto> getAppointmentsByPatientId(Long patientId) {
         log.debug("Fetching appointments for patient with ID: {}", patientId);
         List<Appointment> appointments = appointmentRepository.findByPatient_Id(patientId);
 
@@ -129,7 +129,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public List<AppointmentDto> getAppointmentDtosByDate(LocalDate date) {
+    public List<AppointmentDto> getAppointmentsByDate(LocalDate date) {
         log.debug("Fetching appointments for date: {}", date);
         List<Appointment> appointments = appointmentRepository.findByDate(date);
         log.debug("Found {} appointments for date: {}", appointments.size(), date);
@@ -139,7 +139,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public List<AppointmentDto> getUpcomingAppointmentDtos() {
+    public List<AppointmentDto> getUpcomingAppointments() {
         log.info("Fetching upcoming appointments.");
         List<Appointment> appointments = appointmentRepository.findUpcomingAppointments();
         log.debug("Found {} upcoming appointments.", appointments.size());
@@ -183,13 +183,13 @@ public class AppointmentServiceImpl implements AppointmentService {
 
 
     @Override
-    public List<AppointmentPerDoctorDTO> getCountAppointmentsPerDoctor() {
+    public List<AppointmentPerDoctorDTO> getAppointmentsCountPerDoctor() {
         log.info("Counting appointments per doctor.");
         return appointmentRepository.countAppointmentsPerDoctor();
     }
 
     @Override
-    public List<AppointmentDto> getOrderedAppointmentDtosByDateAndTime() {
+    public List<AppointmentDto> getAppointmentsOrderByDateAndTime() {
         log.info("Fetching and ordering appointments by date and time.");
         List<Appointment> appointments = getOrderedAppointmentByDateAndTimeAsEntities();
         return appointments.stream()
@@ -201,11 +201,19 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public List<AppointmentDto> getAppointmentDtoPage(Integer pageNumber, Integer pageSize, String sortBy) {
+    public List<AppointmentDto> getAppointmentPage(Integer pageNumber, Integer pageSize, String sortBy, String dir) {
+
         log.info("Fetching appointment page {} with size {} and sorting by {}.", pageNumber, pageSize, sortBy);
-        List<Appointment> appointments = appointmentRepository
-                .findAll(PageRequest.of(pageNumber, pageSize,
-                        Sort.by(Sort.Direction.ASC, sortBy, "time"))).toList();
+
+        Sort.Direction direction = "asc".equalsIgnoreCase(dir) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        List<Appointment> appointments = appointmentRepository.findAll(
+                PageRequest.of(
+                        pageNumber,
+                        pageSize,
+                        direction,
+                        sortBy
+                )
+        ).toList();
 
         return appointments.stream()
                 .map(appointmentMapper::toDto)
@@ -213,18 +221,18 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public List<AppointmentDto> getAppointmentsFiltered(Long doctorId, Long patientId, LocalDate date, int page, int size, String sortBy) {
+    public List<AppointmentDto> getAppointmentsFiltered(Long doctorId, Long patientId, LocalDate date, int page, int size, String sortBy, String dir) {
         log.info("Filtering appointments with parameters: doctorId={}, patientId={}, date={}, page={}, size={}, sortBy={}", doctorId, patientId, date, page, size, sortBy);
         if (doctorId != null) {
-            return getAppointmentDtosOfDoctorId(doctorId);
+            return getAppointmentByDoctorId(doctorId);
         }
         if (patientId != null) {
-            return getAppointmentDtosOfPatientId(patientId);
+            return getAppointmentsByPatientId(patientId);
         }
         if (date != null) {
-            return getAppointmentDtosByDate(date);
+            return getAppointmentsByDate(date);
         }
-        return getAppointmentDtoPage(page, size, sortBy);
+        return getAppointmentPage(page, size, sortBy, dir);
     }
 
 }

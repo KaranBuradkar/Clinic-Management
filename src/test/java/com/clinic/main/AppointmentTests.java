@@ -51,7 +51,7 @@ public class AppointmentTests {
     public void testRepositoryGetMethods() {
 
         // View all Appointments
-        List<AppointmentDto> appointmentDtos = appointmentService.getAllAppointmentDtos("id");
+        List<AppointmentDto> appointmentDtos = appointmentService.getAppointments("id");
         System.out.println("View all Appointments: "+appointmentDtos);
 
         // View Appointment By ID
@@ -59,30 +59,30 @@ public class AppointmentTests {
         System.out.println("View Appointment By ID: "+appointmentDto);
 
         // View Appointments by doctorId
-        appointmentDtos = appointmentService.getAppointmentDtosOfDoctorId(3L);
+        appointmentDtos = appointmentService.getAppointmentByDoctorId(3L);
         System.out.println("View Appointments by doctorId: "+appointmentDtos);
 
         // View Appointments by patientId
-        appointmentDtos = appointmentService.getAppointmentDtosOfPatientId(1L);
+        appointmentDtos = appointmentService.getAppointmentsByPatientId(1L);
         System.out.println("View Appointments by patientId: "+appointmentDtos);
 
         // View Appointments by specific date
-        appointmentDtos = appointmentService.getAppointmentDtosByDate(LocalDate.of(2025, 8, 13));
+        appointmentDtos = appointmentService.getAppointmentsByDate(LocalDate.of(2025, 8, 13));
 
         // View Upcoming Appointments
-        appointmentDtos = appointmentService.getUpcomingAppointmentDtos();
+        appointmentDtos = appointmentService.getUpcomingAppointments();
         System.out.println("View Upcoming Appointments: "+appointmentDtos);
 
         // View Appointments Per Doctor
-        List<AppointmentPerDoctorDTO> doctorAppointmentCount = appointmentService.getCountAppointmentsPerDoctor();
+        List<AppointmentPerDoctorDTO> doctorAppointmentCount = appointmentService.getAppointmentsCountPerDoctor();
         System.out.println("View Appointments Per Doctor: "+doctorAppointmentCount);
 
         // View Appointment in order of date and time
-        appointmentDtos = appointmentService.getOrderedAppointmentDtosByDateAndTime();
+        appointmentDtos = appointmentService.getAppointmentsOrderByDateAndTime();
         System.out.println("View Appointment in order of date and time: "+appointmentDtos);
 
         // View Appointments in Page
-        appointmentDtos = appointmentService.getAppointmentDtoPage(0, 4, "id");
+        appointmentDtos = appointmentService.getAppointmentPage(0, 4, "id", "asc");
         System.out.println("View Appointments in Page: "+appointmentDtos);
     }
 

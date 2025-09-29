@@ -59,11 +59,13 @@ public class PatientServiceImpl implements PatientService {
     }
 
     @Override
-    public List<PatientDto> getPatientDtoPage(Integer pageNumber, Integer pageSize, String sortBy) {
+    public List<PatientDto> getPatientDtoPage(Integer pageNumber, Integer pageSize, String sortBy, String dir) {
+        Sort.Direction direction = "asc".equalsIgnoreCase(dir) ? Sort.Direction.ASC : Sort.Direction.DESC;
         List<Patient> patients = patientRepository.findAll(
                         PageRequest.of(pageNumber,
                                 pageSize,
-                                Sort.by(Sort.Direction.ASC, sortBy)
+                                direction,
+                                sortBy
                         )
                 ).toList();
 

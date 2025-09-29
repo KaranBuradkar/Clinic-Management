@@ -66,9 +66,10 @@ public class PatientController {
     public ResponseEntity<List<PatientDto>> getPaginatedPatients(
             @RequestParam int page,
             @RequestParam int size,
-            @RequestParam(defaultValue = "id") String sortBy
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "ASC") String dir
     ) {
-        return ResponseEntity.ok(patientService.getPatientDtoPage(page, size, sortBy));
+        return ResponseEntity.ok(patientService.getPatientDtoPage(page, size, sortBy, dir));
     }
 
     // Partially update patient (e.g., name or other fields)

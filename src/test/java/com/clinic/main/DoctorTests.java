@@ -19,27 +19,27 @@ public class DoctorTests {
     public void testRepositoryGetMethods() {
         // View All Doctors
         System.out.println("All Doctors: ");
-        List<DoctorDto> doctorDtos = doctorService.getAllDoctorDtos();
+        List<DoctorDto> doctorDtos = doctorService.getDoctorsSortBy("name");
         displayDoctors(doctorDtos);
 
         // View Doctor By ID
         System.out.println("Doctor By Id: ");
-        DoctorDto doctorDto = doctorService.getDoctorDtoById(3L);
+        DoctorDto doctorDto = doctorService.getDoctorById(3L);
         System.out.println(doctorDto);
 
         // View Doctor Page
         System.out.println("Page of Doctors: ");
-        doctorDtos = doctorService.getAPageOfDoctorDto(4, 5, "id");
+        doctorDtos = doctorService.getDoctors(4, 5, "id", "desc");
         displayDoctors(doctorDtos);
 
         // View Doctors By Specialization
         System.out.println("Doctors By Specialization: ");
-        doctorDtos = doctorService.getDoctorDtosBySpecialization("Dentist");
+        doctorDtos = doctorService.getDoctorsBySpecialization("Dentist");
         displayDoctors(doctorDtos);
 
         // View Sorted Doctor By field
         System.out.println("Sort doctors by name: ");
-        doctorDtos = doctorService.getDoctorDtosSortedBy("name");
+        doctorDtos = doctorService.getDoctorsSortBy("name");
         displayDoctors(doctorDtos);
     }
 

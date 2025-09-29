@@ -44,12 +44,12 @@ public class AppointmentController {
 
     @GetMapping("/upcoming")
     public ResponseEntity<List<AppointmentDto>> getUpcomingAppointments() {
-        return ResponseEntity.ok(appointmentService.getUpcomingAppointmentDtos());
+        return ResponseEntity.ok(appointmentService.getUpcomingAppointments());
     }
 
     @GetMapping("/statistics/by-doctor")
     public ResponseEntity<List<AppointmentPerDoctorDTO>> getAppointmentCountPerDoctor() {
-        return ResponseEntity.ok(appointmentService.getCountAppointmentsPerDoctor());
+        return ResponseEntity.ok(appointmentService.getAppointmentsCountPerDoctor());
     }
 
     @GetMapping
@@ -59,12 +59,10 @@ public class AppointmentController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "date") String sortBy
+            @RequestParam(defaultValue = "date") String sortBy,
+            @RequestParam(defaultValue = "ASC") String dir
     ) {
-//        if (doctorId == null && patientId == null && date == null) {
-//            return ResponseEntity.ok(appointmentService.getAllAppointmentDtos(sortBy));
-//        }
-        return ResponseEntity.ok(appointmentService.getAppointmentsFiltered(doctorId, patientId, date, page, size, sortBy));
+        return ResponseEntity.ok(appointmentService.getAppointmentsFiltered(doctorId, patientId, date, page, size, sortBy, dir));
     }
 
     @PutMapping("/{id}")

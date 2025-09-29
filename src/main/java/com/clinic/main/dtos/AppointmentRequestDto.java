@@ -63,16 +63,4 @@ public class AppointmentRequestDto {
     public void setPatientId(Long patientId) {
         this.patientId = patientId;
     }
-
-    @Override
-    public String toString() {
-        return "AppointmentRequestDto{" +
-                ", reason='" + reason + '\'' +
-                ", date=" + date +
-                ", time=" + time +
-                ", createdAt=" + createdAt +
-                ", doctorId=" + doctorId +
-                ", patientId=" + patientId +
-                '}';
-    }
 }

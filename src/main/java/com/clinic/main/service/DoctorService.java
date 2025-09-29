@@ -4,21 +4,18 @@ import com.clinic.main.dtos.DoctorDto;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public interface DoctorService {
 
-    // View All Doctors
-    List<DoctorDto> getAllDoctorDtos();
     // View Doctor By ID
-    DoctorDto getDoctorDtoById(Long doctorId);
+    DoctorDto getDoctorById(Long doctorId);
     // View Doctor Page
-    List<DoctorDto> getAPageOfDoctorDto(Integer pageNumber, Integer pageSize, String sortBy);
+    List<DoctorDto> getDoctors(Integer pageNumber, Integer pageSize, String sortBy, String dir);
     // View Doctors By Specialization
-    List<DoctorDto> getDoctorDtosBySpecialization(String specialization);
+    List<DoctorDto> getDoctorsBySpecialization(String specialization);
     // View Sorted Doctor By name
-    List<DoctorDto> getDoctorDtosSortedBy(String field);
+    List<DoctorDto> getDoctorsSortBy(String field);
 
     // MODIFICATIONS
     // ADD Doctor
